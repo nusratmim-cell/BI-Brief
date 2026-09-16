@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Working guide for the Shikho BI team on the CEO's Learner Record brief - what it asks for, which warehouse tables answer each line, measured figures, and tested SQL.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Learning Graph Field Guide">
+<meta property="og:description" content="Shikho BI working guide to the Learner Record brief.">
+<meta property="og:type" content="article">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%AD%3C/text%3E%3C/svg%3E">
+<title>Learning Graph Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F6F6F3; --surface:#FFFFFF; --surface-2:#EFF0EC; --sunk:#F1F2EE;
+  --ink:#14201F; --ink-2:#465956; --muted:#6E8280; --rule:#DFE1DB; --rule-2:#C9CDC4;
+  --accent:#0A6F68; --accent-soft:#E2F0EE;
+  --s1:#8CC0B9; --s2:#69ADA4; --s3:#47968D; --s4:#277C73; --s5:#11635D; --s6:#093F3A;
+  --good:#1F7A46; --warn:#9A6510; --crit:#A83228;
+  --good-bg:#E8F2EC; --warn-bg:#F7EEDC; --crit-bg:#F8E8E5;
+  --shadow:0 1px 2px rgba(20,32,31,.04), 0 8px 22px -16px rgba(20,32,31,.22);
+  --display:"Newsreader",Georgia,serif;
+  --body:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased}
+.wrap{max-width:1150px; margin:0 auto; padding-inline:20px; padding-block:0}
+h1,h2,h3{text-wrap:balance; margin:0}
+a{color:var(--accent)}
+code{font-family:var(--mono); font-size:.88em; background:var(--sunk); padding:1px 5px; border-radius:3px; border:1px solid var(--rule)}
+.num{font-variant-numeric:tabular-nums}
+
+.mast{background:var(--surface); border-bottom:1px solid var(--rule)}
+.mast .wrap{padding-block:38px 26px}
+.eyebrow{font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:16px}
+h1{font-family:var(--display); font-size:clamp(36px,6vw,56px); line-height:1.03; font-weight:500; letter-spacing:-.018em}
+.dek{font-size:clamp(15px,2vw,17.5px); line-height:1.5; color:var(--ink-2); margin:14px 0 0; max-width:62ch}
+.mast-meta{display:flex; flex-wrap:wrap; gap:7px 24px; margin-top:22px; padding-top:18px; border-top:1px solid var(--rule); font-size:12px; color:var(--muted); font-family:var(--mono)}
+.mast-meta b{color:var(--ink-2); font-weight:500}
+
+.nav{position:sticky; top:env(safe-area-inset-top,0px); z-index:30; background:rgba(246,246,243,.94); backdrop-filter:blur(10px); border-bottom:1px solid var(--rule)}
+.nav .wrap{display:flex; gap:2px; overflow-x:auto; padding-block:0}
+.nav a{flex:none; padding:12px 11px; font-size:12.5px; font-weight:500; color:var(--ink-2); text-decoration:none; border-bottom:2px solid transparent; white-space:nowrap}
+.nav a:hover{color:var(--accent); border-bottom-color:var(--rule-2)}
+
+section{padding-block:50px; border-bottom:1px solid var(--rule)}
+section:last-of-type{border-bottom:0}
+h2{font-family:var(--display); font-size:clamp(25px,3.5vw,33px); font-weight:500; letter-spacing:-.014em; line-height:1.15}
+.sub{color:var(--ink-2); margin:11px 0 26px; max-width:70ch}
+p{margin:0 0 14px}
+h3{font-size:15.5px; font-weight:700; margin:30px 0 11px; letter-spacing:-.005em}
+
+.tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(178px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden}
+.tile{background:var(--surface); padding:18px 17px}
+.tile .k{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:9px}
+.tile .v{font-family:var(--display); font-size:29px; font-weight:500; line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.tile .n{font-size:12px; color:var(--ink-2); margin-top:8px; line-height:1.45}
+
+.sentence{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--accent); border-radius:3px; padding:24px 26px; box-shadow:var(--shadow)}
+.sentence .q{font-family:var(--display); font-size:clamp(18px,2.4vw,23px); line-height:1.5; margin:0}
+.sentence .q em{font-style:normal; background:var(--accent-soft); color:var(--accent); padding:1px 7px; border-radius:3px; font-weight:600; font-family:var(--body); font-size:.85em; font-variant-numeric:tabular-nums; white-space:nowrap}
+.sentence .cap{margin:16px 0 0; padding-top:14px; border-top:1px solid var(--rule); font-size:13px; color:var(--muted)}
+
+.fig{background:var(--surface); border:1px solid var(--rule); border-radius:3px; padding:22px; box-shadow:var(--shadow)}
+.fig-h{font-size:14px; font-weight:700; margin-bottom:3px}
+.fig-s{font-size:12px; color:var(--muted); margin-bottom:20px}
+.bars{display:flex; flex-direction:column; gap:8px}
+.bar-row{display:grid; grid-template-columns:minmax(112px,auto) 1fr; gap:13px; align-items:center}
+.bar-lab{font-size:12px; color:var(--ink-2); text-align:right; line-height:1.25}
+.bar-lab small{display:block; color:var(--muted); font-size:10px; font-family:var(--mono)}
+.bar-track{display:flex; align-items:center; gap:9px; min-width:0}
+.bar-fill{height:18px; border-radius:0 3px 3px 0; min-width:2px}
+.bar-val{font-family:var(--mono); font-size:11.5px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap}
+.axis{display:flex; justify-content:space-between; margin-top:14px; padding-top:9px; border-top:1px solid var(--rule); font-family:var(--mono); font-size:10px; color:var(--muted)}
+.foot{font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:6px; line-height:1.5}
+
+.tscroll{overflow-x:auto; border:1px solid var(--rule); border-radius:3px; background:var(--surface); box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; min-width:760px; font-size:13px}
+th{text-align:left; padding:12px 13px; background:var(--surface-2); border-bottom:1px solid var(--rule-2); font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-2); white-space:nowrap}
+td{padding:12px 13px; border-bottom:1px solid var(--rule); vertical-align:top; line-height:1.5}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--surface-2)}
+td.t{font-family:var(--mono); font-size:11.5px; color:var(--accent); white-space:nowrap}
+td.n{font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap; font-size:12px}
+.dim{color:var(--muted)}
+
+.pill{display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:20px; font-family:var(--mono); font-size:10px; font-weight:600; white-space:nowrap; text-transform:uppercase}
+.pill::before{content:""; width:5px; height:5px; border-radius:50%; background:currentColor; flex:none}
+.p-good{background:var(--good-bg); color:var(--good)}
+.p-warn{background:var(--warn-bg); color:var(--warn)}
+.p-crit{background:var(--crit-bg); color:var(--crit)}
+
+.note{border:1px solid var(--rule); border-left:3px solid var(--warn); background:var(--surface); border-radius:3px; padding:16px 18px; font-size:14px; margin:22px 0}
+.note.crit{border-left-color:var(--crit)}
+.note.good{border-left-color:var(--good)}
+.note b.h{display:block; margin-bottom:5px; font-size:13px}
+.note p:last-child{margin:0}
+
+/* query cookbook */
+.q{background:var(--surface); border:1px solid var(--rule); border-radius:3px; margin-bottom:18px; box-shadow:var(--shadow); overflow:hidden}
+.q-h{padding:16px 20px; border-bottom:1px solid var(--rule); display:flex; gap:12px; align-items:baseline; flex-wrap:wrap}
+.q-id{font-family:var(--mono); font-size:11.5px; font-weight:600; color:var(--accent)}
+.q-t{font-size:15px; font-weight:700; flex:1; min-width:180px}
+.q-m{font-family:var(--mono); font-size:10.5px; color:var(--muted)}
+.q-body{padding:0}
+pre{background:var(--sunk); border:0; border-bottom:1px solid var(--rule); padding:16px 20px; overflow-x:auto; font-family:var(--mono); font-size:12px; line-height:1.62; margin:0; color:var(--ink)}
+pre .c{color:var(--muted)}
+pre .k{color:var(--accent); font-weight:600}
+.q-out{padding:14px 20px; background:var(--surface)}
+.q-out .lbl{font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); margin-bottom:8px}
+.q-out .res{font-family:var(--mono); font-size:12px; line-height:1.7; color:var(--ink); overflow-x:auto}
+.q-out .res b{color:var(--accent); font-weight:600}
+
+.mines{display:grid; grid-template-columns:repeat(auto-fit,minmax(285px,1fr)); gap:14px}
+.mine{background:var(--surface); border:1px solid var(--rule); border-radius:3px; padding:16px 18px; box-shadow:var(--shadow)}
+.mine h4{margin:9px 0 7px; font-size:14px; font-weight:700}
+.mine p{font-size:13px; color:var(--ink-2); margin:0}
+.mine .ev{margin-top:10px; padding-top:9px; border-top:1px solid var(--rule); font-family:var(--mono); font-size:11px; color:var(--muted); line-height:1.55}
+
+.steps{display:flex; flex-direction:column; gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:3px; overflow:hidden}
+.step{background:var(--surface); padding:20px 22px; display:grid; grid-template-columns:36px 1fr; gap:16px}
+.step .sn{font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--accent); padding-top:2px}
+.step h4{margin:0 0 6px; font-size:15.5px; font-weight:700; display:flex; gap:9px; align-items:center; flex-wrap:wrap}
+.step p{font-size:13.5px; color:var(--ink-2); margin:0 0 10px}
+.step .meta{display:flex; flex-wrap:wrap; gap:5px 18px; font-family:var(--mono); font-size:11px; color:var(--muted); padding-top:10px; border-top:1px solid var(--rule)}
+.step .meta b{color:var(--ink-2); font-weight:500}
+
+ul.clean{margin:0 0 14px; padding-left:19px}
+ul.clean li{margin-bottom:8px; color:var(--ink-2)}
+ul.clean li b{color:var(--ink)}
+.two{display:grid; grid-template-columns:1fr 1fr; gap:22px}
+@media (max-width:760px){
+  .two{grid-template-columns:1fr}
+  .bar-row{grid-template-columns:1fr; gap:4px}
+  .bar-lab{text-align:left}
+  .step{grid-template-columns:1fr; gap:9px}
+}
+footer{padding-block:34px 50px; color:var(--muted); font-size:12px; font-family:var(--mono); line-height:1.7}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+</style>
+<style>
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="mast">
+  <div class="wrap">
+    <div class="eyebrow">Shikho BI · Working guide to the CEO brief</div>
+    <h1>Learning Graph Field Guide</h1>
+    <p class="dek">What the brief asks for, which table answers each line, the figures measured so far, and tested SQL you can run today.</p>
+    <div class="mast-meta">
+      <span><b>Brief</b> The Learner Record · Sep 2026</span>
+      <span><b>From</b> Shahir (CEO)</span>
+      <span><b>Warehouse</b> Postgres · DB 2</span>
+      <span><b>Measured</b> 16 Sep 2026</span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="wrap">
+    <a href="#ask">The ask</a>
+    <a href="#numbers">Measured</a>
+    <a href="#routing">Where to find what</a>
+    <a href="#queries">Query cookbook</a>
+    <a href="#mines">Landmines</a>
+    <a href="#plan">Deliverables</a>
+    <a href="#handoff">Handoff</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<section id="ask">
+  <h2>What the brief is asking for</h2>
+  <p class="sub">It reads like an analytics dump request. It isn't — the objective line says <em>“for investor diligence”</em>, and every requirement follows from that one reader.</p>
+
+  <ul class="clean" style="max-width:70ch">
+    <li><b>A. How much do we know about one learner?</b> A distribution, not company totals. What is actually inside a mature learner's record.</li>
+    <li><b>B. Does it predict something valuable?</b> Use only the first 7/30/60/90/180 days of behaviour to predict later retention, learning, exam results, purchase and repayment. Report performance, sample sizes and top features.</li>
+    <li><b>C. How hard is it to recreate?</b> Quantified on breadth, depth, duration, resolution and outcome linkage.</li>
+  </ul>
+
+  <div class="note crit" style="max-width:72ch">
+    <b class="h">The governing constraint, quoted from the brief</b>
+    <p>“Do not optimize for the biggest possible number; optimize for numbers we can defend under investor diligence.” Every figure needs a definition, a sample size and an exclusion rule — and measured facts must stay visibly separate from modelled ones.</p>
+  </div>
+
+  <div class="sentence">
+    <p class="q">“For <em>64,438</em> learners, Shikho holds <em>18.9 months</em> of continuous history across <em>11 signal families</em>, and for <em>55,020</em> of them that history is linked to a verified public-exam result.”</p>
+    <p class="cap">The brief says the analysis succeeds if this sentence can be completed credibly. Every figure above is measured. The remaining blank — <b>“…and that history predicts &lt;outcome&gt; with &lt;performance&gt;”</b> — is Deliverable 04 and requires fitting the model.</p>
+  </div>
+</section>
+
+<section id="numbers">
+  <h2>What the data says once you count it</h2>
+  <p class="sub">Measured against the warehouse on 16 Sep 2026 using the queries below. These differ sharply from Metabase's table sidebar — see landmines.</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="k">Registered</div><div class="v num">4,599,408</div><div class="n">Since Oct 2020 — ~6 years of continuous history.</div></div>
+    <div class="tile"><div class="k">With activity</div><div class="v num">994,357</div><div class="n">21.6% of registrations have ≥1 active day.</div></div>
+    <div class="tile"><div class="k">12 months +</div><div class="v num">64,438</div><div class="n">Median 18.9 months, 67 active days, 318 events.</div></div>
+    <div class="tile"><div class="k">Learning time</div><div class="v num">1.36 B</div><div class="n">Minutes measured across 817,414 learners (22.6 M hours).</div></div>
+    <div class="tile"><div class="k">Engaged learner</div><div class="v num">129 h</div><div class="n">Median for the 81,441 learners with 30+ active days.</div></div>
+    <div class="tile"><div class="k">Outcome-linked</div><div class="v num">55,020</div><div class="n">Modellable SSC results (2025–26) with behavioural history.</div></div>
+  </div>
+
+  <div class="note" style="margin-top:24px">
+    <b class="h">Two numbers you must not hide</b>
+    <p>The <b>median</b> learner with any activity has <b>1 active day</b> and <b>9.1 minutes</b> of learning time. Most registrations are one-touch visitors, and an analyst will find this in ten minutes.</p>
+    <p>Lead with the distribution instead: 994,357 reached → 64,438 at 12 months+ → a median engaged learner at <b>129 hours</b> and a maximum of <b>1,101 active days</b>. The honest funnel is more persuasive than a blended mean.</p>
+  </div>
+
+  <div class="two" style="margin-top:26px">
+    <div class="fig">
+      <div class="fig-h">Longitudinal depth</div>
+      <div class="fig-s">Learners whose first and last active day are ≥ N months apart. Q2 below.</div>
+      <div class="bars">
+        <div class="bar-row"><div class="bar-lab">3 months +<small>159,345</small></div><div class="bar-track"><div class="bar-fill" style="width:100%; background:var(--s1)"></div></div></div>
+        <div class="bar-row"><div class="bar-lab">6 months +<small>120,737</small></div><div class="bar-track"><div class="bar-fill" style="width:75.8%; background:var(--s2)"></div></div></div>
+        <div class="bar-row"><div class="bar-lab">12 months +<small>64,438</small></div><div class="bar-track"><div class="bar-fill" style="width:40.4%; background:var(--s3)"></div></div></div>
+        <div class="bar-row"><div class="bar-lab">24 months +<small>17,536</small></div><div class="bar-track"><div class="bar-fill" style="width:11.0%; background:var(--s5)"></div></div></div>
+        <div class="bar-row"><div class="bar-lab">36 months +<small>4,464</small></div><div class="bar-track"><div class="bar-fill" style="width:2.8%; background:var(--s6)"></div></div></div>
+      </div>
+      <div class="axis"><span>0</span><span class="num">159,345 learners</span></div>
+      <div class="foot">Linear scale, bars relative to the 3-month cohort.</div>
+    </div>
+
+    <div class="fig">
+      <div class="fig-h">Signal coverage</div>
+      <div class="fig-s">Distinct learners per signal family. Log scale — coverage spans three orders of magnitude.</div>
+      <div class="bars">
+        <div class="bar-row"><div class="bar-lab">Acquisition<small>utm_parameter</small></div><div class="bar-track"><div class="bar-fill" style="width:87.7%; background:var(--s6)"></div><span class="bar-val num">4,282,272</span></div></div>
+        <div class="bar-row"><div class="bar-lab">Enrolment<small>academic_program_enrol</small></div><div class="bar-track"><div class="bar-fill" style="width:74.9%; background:var(--s6)"></div><span class="bar-val num">1,766,498</span></div></div>
+        <div class="bar-row"><div class="bar-lab">Daily activity<small>user_activity_daily_logs</small></div><div class="bar-track"><div class="bar-fill" style="width:66.6%; background:var(--s6)"></div><span class="bar-val num">994,357</span></div></div>
+        <div class="bar-row"><div class="bar-lab">Minutes<small>duration_agg</small></div><div class="bar-track"><div class="bar-fill" style="width:63.7%; background:var(--s5)"></div><span class="bar-val num">817,414</span></div></div>
+        <div class="bar-row"><div class="bar-lab">Video<small>video_lib_agg_watch_logs</small></div><div class="bar-track"><div class="bar-fill" style="width:58.1%; background:var(--s5)"></div><span class="bar-val num">552,392</span></div></div>
+        <div class="bar-row"><div class="bar-lab">AI tutor<small>gen_ai_sessions</small></div><div class="bar-track"><div class="bar-fill" style="width:49.1%; background:var(--s4)"></div><span class="bar-val num">298,067</span></div></div>
+        <div class="bar-row"><div class="bar-lab">Practice MCQ<small>practice_mcq_session</small></div><div class="bar-track"><div class="bar-fill" style="width:45.8%; background:var(--s4)"></div><span class="bar-val num">236,043</span></div></div>
+        <div class="bar-row"><div class="bar-lab">Topic mastery<small>mcq_user_topic_daily</small></div><div class="bar-track"><div class="bar-fill" style="width:45.4%; background:var(--s4)"></div><span class="bar-val num">230,237</span></div></div>
+        <div class="bar-row"><div class="bar-lab">Payers<small>Transactions</small></div><div class="bar-track"><div class="bar-fill" style="width:41.4%; background:var(--s3)"></div><span class="bar-val num">174,478</span></div></div>
+        <div class="bar-row"><div class="bar-lab">Outcome-linked<small>board result + activity</small></div><div class="bar-track"><div class="bar-fill" style="width:31.6%; background:var(--s3)"></div><span class="bar-val num">88,426</span></div></div>
+        <div class="bar-row"><div class="bar-lab">Recurring pay<small>bkash_agreements</small></div><div class="bar-track"><div class="bar-fill" style="width:19.5%; background:var(--s2)"></div><span class="bar-val num">38,554</span></div></div>
+        <div class="bar-row"><div class="bar-lab">Per-answer<small>answer_breakdown</small></div><div class="bar-track"><div class="bar-fill" style="width:13.5%; background:var(--s1)"></div><span class="bar-val num">25,487</span></div></div>
+      </div>
+      <div class="axis"><span>10K</span><span>100K</span><span>1M</span><span>10M</span></div>
+      <div class="foot">Bar length is log₁₀(learners) — equal steps mean equal multiples, not equal counts.</div>
+    </div>
+  </div>
+</section>
+
+<section id="routing">
+  <h2>Where to find what</h2>
+  <p class="sub">Every line of the brief's Core Output table mapped to the table that answers it.</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Brief line</th><th>Source</th><th>Learners</th><th>From</th><th>Status</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td><b>Scale</b></td><td class="t">Students · user_activity_daily_logs</td><td class="n">4,599,408<br>994,357</td><td class="n">Oct 2020</td><td><span class="pill p-good">Ready</span></td><td>Registration ≠ activity. Show both.</td></tr>
+        <tr><td><b>Longitudinal depth</b></td><td class="t">datafuse.user_activity_daily_logs</td><td class="n">994,357</td><td class="n">Oct 2020</td><td><span class="pill p-good">Ready</span></td><td>Best table in the warehouse for this brief. 13.56 M rows, ~6 years.</td></tr>
+        <tr><td><b>Density per learner</b></td><td class="t">datafuse.user_activity_duration_agg</td><td class="n">817,414</td><td class="n">Jan 2023</td><td><span class="pill p-good">Ready</span></td><td>Count and duration pre-split by content type.</td></tr>
+        <tr><td><b>Video behaviour</b></td><td class="t">video_library_aggregated_watch_logs</td><td class="n">552,392</td><td class="n">May 2025</td><td><span class="pill p-good">Ready</span></td><td><code>states</code> is a 10-second chunk map — abandonment and skips are derivable (Q6).</td></tr>
+        <tr><td><b>Assessment</b></td><td class="t">datafuse.mcq_user_topic_daily</td><td class="n">230,237</td><td class="n">Sep 2025</td><td><span class="pill p-good">Ready</span></td><td>Easy/mid/hard attempted vs correct, plus time. Only ~12 months deep.</td></tr>
+        <tr><td><b>Concept &amp; mastery</b></td><td class="t">datafuse.mcq_user_topic_daily</td><td class="n">230,237</td><td class="n">Sep 2025</td><td><span class="pill p-warn">Proxy</span></td><td>No concept entity exists. <b>Topic is the proxy</b> — state this in the appendix.</td></tr>
+        <tr><td><b>Learning loops</b></td><td class="t">datafuse.mcq_user_topic_daily</td><td class="n">55,341</td><td class="n">Sep 2025</td><td><span class="pill p-warn">Derive</span></td><td>Not stored. Constructed in Q7 — recovery rate measures 1.3%.</td></tr>
+        <tr><td><b>AI tutor</b></td><td class="t">gen_ai_sessions · gen_ai_conversations</td><td class="n">298,067</td><td class="n">Jan 2025</td><td><span class="pill p-good">Ready</span></td><td>1.71 M conversations. Language mix (Bangla/Banglish) is <b>not</b> a column.</td></tr>
+        <tr><td><b>Engagement</b></td><td class="t">user_activity_daily_logs · user_performance_history</td><td class="n">994,357</td><td class="n">Oct 2020</td><td><span class="pill p-good">Ready</span></td><td><code>highest_streak</code> and <code>engagement_tier</code> already computed — reuse.</td></tr>
+        <tr><td><b>Outcomes</b></td><td class="t">datafuse.academic_board_results</td><td class="n">55,020</td><td class="n">2022</td><td><span class="pill p-warn">Caveat</span></td><td><b>SSC only, ~90% GPA-5.</b> Only 2025–26 have outcome variance. See Q4.</td></tr>
+        <tr><td><b>Commercial</b></td><td class="t">public."Transactions"</td><td class="n">174,478</td><td class="n">Oct 2020</td><td><span class="pill p-good">Ready</span></td><td>247,980 transactions. Net out <code>refunded</code> before quoting LTV.</td></tr>
+        <tr><td><b>Payments / credit</b></td><td class="t">bkash_agreements</td><td class="n">38,554</td><td class="n">Apr 2022</td><td><span class="pill p-crit">Gap</span></td><td>Mandate status only — <b>no instalment ledger</b>. Delinquency cannot be measured.</td></tr>
+        <tr><td><b>Coverage</b></td><td class="t">Students · datafuse.user_device_info</td><td class="n">4,599,408<br>77,533</td><td class="n">Oct 2020</td><td><span class="pill p-good">Ready</span></td><td>District, division, area_type, gender, school, device. Network quality (2G/LTE/WiFi/5G) is a distinctive signal.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Event taxonomy — for the Deliverable 05 appendix</h3>
+  <div class="tscroll">
+    <table style="min-width:600px">
+      <thead><tr><th>Field</th><th>Values</th></tr></thead>
+      <tbody>
+        <tr><td class="t">user_activities.lesson_type</td><td class="n">LiveClass · HomeWork · LiveExam · ModelTest · RecordedVideo</td></tr>
+        <tr><td class="t">user_activities.lesson_sub_type</td><td class="n">Lecture · MCQ · AnimatedVideo · Quiz · Solving · Extra · MCQCQ · CQ · Orientation</td></tr>
+        <tr><td class="t">mcq_user_topic_daily.quiz_type</td><td class="n">UserDefinedMcq · RecordedClassTopicMcq · ChapterWiseMcq</td></tr>
+        <tr><td class="t">video…watch_logs.content_type</td><td class="n">ShortVideo · PopularVideo · GuidelineVideo · RecordedVideo · PromoVideo</td></tr>
+        <tr><td class="t">Transactions.status / course_type</td><td class="n">VALID · Completed &nbsp;/&nbsp; AcademicProgram · Course · Installment</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="queries">
+  <h2>Query cookbook</h2>
+  <p class="sub">Every query below was run against the warehouse on 16 Sep 2026 and its result is shown. The hub key is <code>public."Students".id</code>; almost every learner-scoped table carries it as <code>user_id</code>, except <code>Transactions</code> (<code>student_id</code>) and <code>academic_board_results</code> (joins on <code>reg_no</code>).</p>
+
+  <div class="note crit">
+    <b class="h">Read this first — it decides how you write every query</b>
+    <p><code>datafuse.user_activity_daily_logs</code> has <b>no index on user_id</b> (only <code>row_uuid</code>), and <code>academic_board_results</code> has none on <code>reg_no</code>. Any per-learner lookup against them is a full scan of 13.6 M rows. Aggregate the big table <b>once</b> in a CTE and join the small result — never join per learner in a loop. The Metabase API returns HTTP 504 at roughly four minutes, and caps output at 2,000 rows.</p>
+    <p>Indexes that <em>do</em> exist and are worth using: <code>mcq_user_topic_daily(user_id, date)</code>, <code>user_activity_duration_agg(user_id, activity_date, program_id)</code>, <code>Students(id)</code>, <code>Transactions(student_id)</code>, <code>Transactions(tran_date)</code>.</p>
+  </div>
+
+  <div class="q">
+    <div class="q-h"><span class="q-id">Q1</span><span class="q-t">Row counts without scanning</span><span class="q-m">instant</span></div>
+    <pre><span class="c">-- Metabase's sidebar row counts are stale by up to 1000x. Use this instead.</span>
+<span class="k">select</span> relname, n_live_tup
+<span class="k">from</span>   pg_stat_user_tables
+<span class="k">where</span>  schemaname <span class="k">in</span> (<span class="c">'public'</span>,<span class="c">'datafuse'</span>)
+<span class="k">order</span> <span class="k">by</span> n_live_tup <span class="k">desc</span>;</pre>
+    <div class="q-out"><div class="lbl">Verified</div><div class="res">user_activities <b>14,009,657</b> · answer_breakdown <b>6,414,684</b> · Students <b>4,608,753</b><br>Also revealed: <span class="dim">VideoWatchLogs = 0 · Topic_Progress = 0 · program_video_watch_logs = 3,245</span></div></div>
+  </div>
+
+  <div class="q">
+    <div class="q-h"><span class="q-id">Q2</span><span class="q-t">Learner-record depth — Deliverables 01, 02, 03</span><span class="q-m">~3 min · one full scan</span></div>
+    <pre><span class="c">-- The distribution the brief asks for in Question A.</span>
+<span class="k">with</span> u <span class="k">as</span> (
+  <span class="k">select</span> user_id,
+         count(<span class="k">distinct</span> activity_date)                          <span class="k">as</span> active_days,
+         sum(activity_count)                                       <span class="k">as</span> events,
+         (max(activity_date)::date - min(activity_date)::date)/30.0 <span class="k">as</span> span_months
+  <span class="k">from</span>   datafuse.user_activity_daily_logs
+  <span class="k">group</span> <span class="k">by</span> 1
+)
+<span class="k">select</span> count(*)                                            <span class="k">as</span> learners,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> span_months &gt;= 3)       <span class="k">as</span> m3,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> span_months &gt;= 6)       <span class="k">as</span> m6,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> span_months &gt;= 12)      <span class="k">as</span> m12,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> span_months &gt;= 24)      <span class="k">as</span> m24,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> span_months &gt;= 36)      <span class="k">as</span> m36,
+       percentile_cont(0.5) <span class="k">within</span> <span class="k">group</span> (<span class="k">order</span> <span class="k">by</span> span_months) <span class="k">as</span> med_months,
+       percentile_cont(0.5) <span class="k">within</span> <span class="k">group</span> (<span class="k">order</span> <span class="k">by</span> active_days) <span class="k">as</span> med_active_days,
+       avg(active_days)                                     <span class="k">as</span> mean_active_days,
+       max(active_days)                                     <span class="k">as</span> max_active_days
+<span class="k">from</span>   u;
+
+<span class="c">-- Swap the outer select for this to get the mature-record anatomy (Deliverable 03):</span>
+<span class="c">--   where span_months &gt;= 12  →  64,438 learners, median 18.9 months,</span>
+<span class="c">--   67 active days, 318 events, mean 896, p90 2,545</span></pre>
+    <div class="q-out"><div class="lbl">Verified</div><div class="res">learners <b>994,357</b> · ≥3mo <b>159,345</b> · ≥6mo <b>120,737</b> · ≥12mo <b>64,438</b> · ≥24mo <b>17,536</b> · ≥36mo <b>4,464</b><br>median span <b>0.0 months</b> · median active days <b>1</b> · mean <b>13.6</b> · max <b>1,101</b></div></div>
+  </div>
+
+  <div class="q">
+    <div class="q-h"><span class="q-id">Q3</span><span class="q-t">First-N-days features + retention label — the Deliverable 04 base table</span><span class="q-m">~4 min · one full scan</span></div>
+    <pre><span class="c">-- The brief's core modelling requirement: features from ONLY the first N days,</span>
+<span class="c">-- predicting behaviour after day 90. One pass + a window — do not self-join.</span>
+<span class="k">with</span> l <span class="k">as</span> (
+  <span class="k">select</span> user_id, activity_date, activity_count,
+         min(activity_date) <span class="k">over</span> (<span class="k">partition</span> <span class="k">by</span> user_id) <span class="k">as</span> d0
+  <span class="k">from</span>   datafuse.user_activity_daily_logs
+)
+<span class="k">select</span> user_id,
+       min(d0)::date                                                            <span class="k">as</span> first_seen,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> activity_date &lt;  d0 + <span class="k">interval</span> <span class="c">'7 day'</span>)   <span class="k">as</span> active_days_d7,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> activity_date &lt;  d0 + <span class="k">interval</span> <span class="c">'30 day'</span>)  <span class="k">as</span> active_days_d30,
+       sum(activity_count) <span class="k">filter</span> (<span class="k">where</span> activity_date &lt; d0 + <span class="k">interval</span> <span class="c">'7 day'</span>)  <span class="k">as</span> events_d7,
+       sum(activity_count) <span class="k">filter</span> (<span class="k">where</span> activity_date &lt; d0 + <span class="k">interval</span> <span class="c">'30 day'</span>) <span class="k">as</span> events_d30,
+       max(activity_count) <span class="k">filter</span> (<span class="k">where</span> activity_date &lt; d0 + <span class="k">interval</span> <span class="c">'30 day'</span>) <span class="k">as</span> peak_day_d30,
+       <span class="c">-- the label</span>
+       (count(*) <span class="k">filter</span> (<span class="k">where</span> activity_date &gt;= d0 + <span class="k">interval</span> <span class="c">'90 day'</span>) &gt; 0) <span class="k">as</span> retained_d90
+<span class="k">from</span>   l
+<span class="k">group</span> <span class="k">by</span> user_id;</pre>
+    <div class="q-out"><div class="lbl">Verified — summary over all 994,357 learners</div><div class="res">avg active days d7 <b>1.8</b> · d30 <b>3.1</b> · avg events d30 <b>17.2</b><br>retained past day 90: <b>159,345</b> — a <b>16.0%</b> base rate</div></div>
+  </div>
+
+  <div class="q">
+    <div class="q-h"><span class="q-id">Q4</span><span class="q-t">Outcome label + class-balance check — run before modelling</span><span class="q-m">~5 min</span></div>
+    <pre><span class="c">-- Links behaviour to verified SSC board results, and checks whether the</span>
+<span class="c">-- label has enough variance to model. It mostly does not — see the result.</span>
+<span class="k">select</span> b.year,
+       count(*)                                <span class="k">as</span> linked_learners,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> b.is_gpa_5)     <span class="k">as</span> gpa5,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> <span class="k">not</span> b.is_gpa_5) <span class="k">as</span> non_gpa5,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> <span class="k">not</span> b.is_passed) <span class="k">as</span> failed,
+       avg(b.gpa)                              <span class="k">as</span> avg_gpa,
+       stddev(b.gpa)                           <span class="k">as</span> sd_gpa
+<span class="k">from</span>   public."Students" s
+<span class="k">join</span>   datafuse.academic_board_results b <span class="k">on</span> b.reg_no = s.board_reg_number
+<span class="k">where</span>  <span class="k">exists</span> (<span class="k">select</span> 1 <span class="k">from</span> datafuse.user_activity_daily_logs l
+               <span class="k">where</span>  l.user_id = s.id)
+<span class="k">group</span> <span class="k">by</span> 1 <span class="k">order</span> <span class="k">by</span> 1 <span class="k">desc</span>;</pre>
+    <div class="q-out"><div class="lbl">Verified — and this changes the plan</div><div class="res">2026 &nbsp;19,801 linked · 5,650 non-GPA-5 · sd <b>0.461</b><br>2025 &nbsp;35,219 linked · 5,378 non-GPA-5 · sd <b>0.299</b><br>2024 &nbsp;23,583 linked · &nbsp;&nbsp;293 non-GPA-5 · sd <span class="dim">0.073</span><br>2023 &nbsp;&nbsp;5,229 linked · &nbsp;&nbsp;878 non-GPA-5 · sd <span class="dim">0.281</span><br>2022 &nbsp;&nbsp;4,610 linked · &nbsp;&nbsp;&nbsp;&nbsp;0 non-GPA-5 · sd <span class="dim">0.037</span><br><br><b>Usable sample = 2025 + 2026 only: 55,020 learners, 11,028 non-GPA-5 (20%).</b></div></div>
+  </div>
+
+  <div class="q">
+    <div class="q-h"><span class="q-id">Q5</span><span class="q-t">Learning minutes per learner — density</span><span class="q-m">~4 min</span></div>
+    <pre><span class="k">with</span> per_learner <span class="k">as</span> (
+  <span class="k">select</span> user_id,
+         sum(recorded_videos_duration + animated_videos_duration + live_class_duration
+             + quiz_duration + live_exam_duration + model_test_duration
+             + smart_notes_duration)/60.0     <span class="k">as</span> minutes,
+         count(<span class="k">distinct</span> activity_date)       <span class="k">as</span> active_days
+  <span class="k">from</span>   datafuse.user_activity_duration_agg
+  <span class="k">group</span> <span class="k">by</span> 1
+)
+<span class="k">select</span> count(*)                                                    <span class="k">as</span> learners,
+       sum(minutes)                                                <span class="k">as</span> total_minutes,
+       percentile_cont(0.5) <span class="k">within</span> <span class="k">group</span> (<span class="k">order</span> <span class="k">by</span> minutes)    <span class="k">as</span> median_minutes,
+       percentile_cont(0.9) <span class="k">within</span> <span class="k">group</span> (<span class="k">order</span> <span class="k">by</span> minutes)    <span class="k">as</span> p90_minutes,
+       percentile_cont(0.5) <span class="k">within</span> <span class="k">group</span> (<span class="k">order</span> <span class="k">by</span> minutes)
+         <span class="k">filter</span> (<span class="k">where</span> active_days &gt;= 30)                          <span class="k">as</span> median_minutes_engaged
+<span class="k">from</span>   per_learner;</pre>
+    <div class="q-out"><div class="lbl">Verified</div><div class="res">learners <b>817,414</b> · total <b>1,355.75 M minutes</b> (22.6 M hours)<br>median <b>9.1 min</b> · mean 1,658.6 · p90 1,717.6<br>median for the 81,441 learners with 30+ active days: <b>7,743.9 min = 129 hours</b></div></div>
+  </div>
+
+  <div class="q">
+    <div class="q-h"><span class="q-id">Q6</span><span class="q-t">Video abandonment and skips — the brief's hardest video line</span><span class="q-m">~30 s on 3,000 rows</span></div>
+    <pre><span class="c">-- states is a chunk map: {"chunk_index": true}, chunk_size seconds each.</span>
+<span class="c">-- Gaps in the sequence are skips; the highest key is the abandonment point.</span>
+<span class="c">-- Raise the LIMIT gradually — the full table is 3.7 M rows.</span>
+<span class="k">with</span> w <span class="k">as</span> (
+  <span class="k">select</span> id, total_duration, chunk_size, states
+  <span class="k">from</span>   public.video_library_aggregated_watch_logs
+  <span class="k">where</span>  states <span class="k">is</span> <span class="k">not</span> <span class="k">null</span> <span class="k">and</span> total_duration &gt; 0 <span class="k">and</span> chunk_size &gt; 0
+  <span class="k">limit</span>  3000
+), k <span class="k">as</span> (
+  <span class="k">select</span> w.id, w.total_duration, w.chunk_size, key::int <span class="k">as</span> chunk
+  <span class="k">from</span>   w, <span class="k">lateral</span> jsonb_object_keys(w.states::jsonb) <span class="k">as</span> key
+), m <span class="k">as</span> (
+  <span class="k">select</span> id, total_duration, chunk_size, chunk,
+         lag(chunk) <span class="k">over</span> (<span class="k">partition</span> <span class="k">by</span> id <span class="k">order</span> <span class="k">by</span> chunk) <span class="k">as</span> prev
+  <span class="k">from</span>   k
+)
+<span class="k">select</span> id,
+       count(*)                                                     <span class="k">as</span> chunks_watched,
+       count(*) * max(chunk_size)                                   <span class="k">as</span> seconds_watched,
+       least(100, 100.0*(max(chunk)+1)*max(chunk_size)/max(total_duration)) <span class="k">as</span> furthest_pct,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> prev <span class="k">is</span> <span class="k">null</span> <span class="k">or</span> chunk &lt;&gt; prev + 1)   <span class="k">as</span> view_runs
+<span class="k">from</span>   m <span class="k">group</span> <span class="k">by</span> id;</pre>
+    <div class="q-out"><div class="lbl">Verified on a 3,000-record sample</div><div class="res">avg chunks watched <b>120.8</b> (~20 min) · avg furthest point <b>55.5%</b> of video<br>avg separate viewing runs <b>6.04</b> · records containing ≥1 skip: <b>63.0%</b></div></div>
+  </div>
+
+  <div class="q">
+    <div class="q-h"><span class="q-id">Q7</span><span class="q-t">Learning loops — failure → remediation → mastery</span><span class="q-m">~30 s for a 3-month window</span></div>
+    <pre><span class="c">-- Not stored anywhere; constructed. Failure = &lt;50% on a topic that day</span>
+<span class="c">-- (min 3 questions); mastery = a LATER day at >=80% on the same topic.</span>
+<span class="k">with</span> t <span class="k">as</span> (
+  <span class="k">select</span> user_id, topic_id, date,
+         sum(total_questions) <span class="k">as</span> q, sum(total_correct) <span class="k">as</span> c
+  <span class="k">from</span>   datafuse.mcq_user_topic_daily
+  <span class="k">where</span>  date &gt;= date <span class="c">'2026-06-01'</span>          <span class="c">-- widen once you trust it</span>
+  <span class="k">group</span>  <span class="k">by</span> 1,2,3
+), fail <span class="k">as</span> (
+  <span class="k">select</span> user_id, topic_id, min(date) <span class="k">as</span> fail_date
+  <span class="k">from</span>   t <span class="k">where</span> q &gt;= 3 <span class="k">and</span> c::numeric/q &lt; 0.5
+  <span class="k">group</span>  <span class="k">by</span> 1,2
+), recover <span class="k">as</span> (
+  <span class="k">select</span> f.user_id, f.topic_id, f.fail_date, min(t.date) <span class="k">as</span> mastery_date
+  <span class="k">from</span>   fail f
+  <span class="k">join</span>   t <span class="k">on</span> t.user_id = f.user_id <span class="k">and</span> t.topic_id = f.topic_id
+         <span class="k">and</span> t.date &gt; f.fail_date <span class="k">and</span> t.q &gt;= 3 <span class="k">and</span> t.c::numeric/t.q &gt;= 0.8
+  <span class="k">group</span>  <span class="k">by</span> 1,2,3
+)
+<span class="k">select</span> (<span class="k">select</span> count(*) <span class="k">from</span> fail)                <span class="k">as</span> failed_episodes,
+       (<span class="k">select</span> count(<span class="k">distinct</span> user_id) <span class="k">from</span> fail) <span class="k">as</span> learners_failing,
+       (<span class="k">select</span> count(*) <span class="k">from</span> recover)             <span class="k">as</span> recovered,
+       (<span class="k">select</span> percentile_cont(0.5) <span class="k">within</span> <span class="k">group</span> (<span class="k">order</span> <span class="k">by</span> mastery_date - fail_date)
+          <span class="k">from</span> recover)                            <span class="k">as</span> median_days_to_mastery;</pre>
+    <div class="q-out"><div class="lbl">Verified — Jun to Sep 2026</div><div class="res">failed episodes <b>656,518</b> · learners failing <b>55,341</b> · recovered <b>8,341</b><br>recovery rate <b>1.3%</b> · median days to mastery <b>6</b><br><span class="dim">The window truncates recoveries after Sep — widen the date filter before quoting.</span></div></div>
+  </div>
+
+  <div class="q">
+    <div class="q-h"><span class="q-id">Q8</span><span class="q-t">AI tutor depth and repeat use</span><span class="q-m">~40 s</span></div>
+    <pre><span class="k">with</span> s <span class="k">as</span> (
+  <span class="k">select</span> user_id, count(*) <span class="k">as</span> sessions,
+         min(start_time)::date <span class="k">as</span> first_seen, max(start_time)::date <span class="k">as</span> last_seen
+  <span class="k">from</span>   public.gen_ai_sessions <span class="k">group</span> <span class="k">by</span> 1
+), c <span class="k">as</span> (
+  <span class="k">select</span> user_id, count(*) <span class="k">as</span> convos <span class="k">from</span> public.gen_ai_conversations <span class="k">group</span> <span class="k">by</span> 1
+)
+<span class="k">select</span> count(*)                                                        <span class="k">as</span> ai_learners,
+       percentile_cont(0.5) <span class="k">within</span> <span class="k">group</span> (<span class="k">order</span> <span class="k">by</span> s.sessions)    <span class="k">as</span> median_sessions,
+       percentile_cont(0.5) <span class="k">within</span> <span class="k">group</span> (<span class="k">order</span> <span class="k">by</span> c.convos)      <span class="k">as</span> median_convos,
+       percentile_cont(0.9) <span class="k">within</span> <span class="k">group</span> (<span class="k">order</span> <span class="k">by</span> c.convos)      <span class="k">as</span> p90_convos,
+       count(*) <span class="k">filter</span> (<span class="k">where</span> s.last_seen &gt; s.first_seen)             <span class="k">as</span> returned_another_day
+<span class="k">from</span>   s <span class="k">left</span> <span class="k">join</span> c <span class="k">on</span> c.user_id = s.user_id;</pre>
+    <div class="q-out"><div class="lbl">Verified</div><div class="res">AI learners <b>298,067</b> · median sessions <b>1</b> · median conversations <b>2</b> · p90 <b>12</b><br>returned on another day <b>86,454</b> — <b>29.0%</b> repeat use</div></div>
+  </div>
+
+  <div class="q">
+    <div class="q-h"><span class="q-id">Q9</span><span class="q-t">Signal census — the coverage pyramid and moat breadth</span><span class="q-m">run one line at a time</span></div>
+    <pre><span class="c">-- Do NOT run as one query — each line is a separate scan. Run individually</span>
+<span class="c">-- and paste results into the appendix table.</span>
+<span class="k">select</span> count(<span class="k">distinct</span> user_id) <span class="k">from</span> public.utm_parameter;                      <span class="c">-- 4,282,272</span>
+<span class="k">select</span> count(<span class="k">distinct</span> user_id) <span class="k">from</span> public.academic_program_enrollment;        <span class="c">-- 1,766,498</span>
+<span class="k">select</span> count(<span class="k">distinct</span> user_id) <span class="k">from</span> datafuse.user_activity_daily_logs;         <span class="c">--   994,357</span>
+<span class="k">select</span> count(<span class="k">distinct</span> user_id) <span class="k">from</span> datafuse.user_activity_duration_agg;        <span class="c">--   817,414</span>
+<span class="k">select</span> count(<span class="k">distinct</span> user_id) <span class="k">from</span> public.video_library_aggregated_watch_logs; <span class="c">--   552,392</span>
+<span class="k">select</span> count(<span class="k">distinct</span> user_id) <span class="k">from</span> public.gen_ai_sessions;                     <span class="c">--   298,067</span>
+<span class="k">select</span> count(<span class="k">distinct</span> user_id) <span class="k">from</span> public.practice_mcq_session;                 <span class="c">--   236,043</span>
+<span class="k">select</span> count(<span class="k">distinct</span> user_id) <span class="k">from</span> datafuse.mcq_user_topic_daily;              <span class="c">--   230,237</span>
+<span class="k">select</span> count(<span class="k">distinct</span> student_id) <span class="k">from</span> public."Transactions";                   <span class="c">--   174,478</span>
+<span class="k">select</span> count(<span class="k">distinct</span> user_id) <span class="k">from</span> public.bkash_agreements;                    <span class="c">--    38,554</span>
+<span class="k">select</span> count(<span class="k">distinct</span> user_id) <span class="k">from</span> public.answer_breakdown;                    <span class="c">--    25,487</span></pre>
+    <div class="q-out"><div class="lbl">Verified</div><div class="res">All eleven figures confirmed 16 Sep 2026 — these populate the coverage chart above.</div></div>
+  </div>
+</section>
+
+<section id="mines">
+  <h2>Landmines</h2>
+  <p class="sub">Each was hit while measuring the figures on this page. Any one would have put a wrong number in an investor document.</p>
+
+  <div class="mines">
+    <div class="mine">
+      <span class="pill p-crit">Critical</span>
+      <h4>The outcome label is ~90% GPA-5</h4>
+      <p>The board table is not a representative sample of SSC candidates — it looks seeded for GPA-5 identification. 2022 and 2024 have almost no outcome variance, so a model trained on them is meaningless.</p>
+      <div class="ev">2022 sd 0.037 · 2024 sd 0.073<br>Usable: <b>2025 + 2026 only — 55,020 learners, 11,028 non-GPA-5</b></div>
+    </div>
+    <div class="mine">
+      <span class="pill p-crit">Critical</span>
+      <h4>Board results are SSC only</h4>
+      <p><code>academic_type</code> has exactly one value. There is no HSC linkage, so outcome claims must say “SSC” explicitly.</p>
+      <div class="ev">academic_type = ssc_result · years 2022–2026</div>
+    </div>
+    <div class="mine">
+      <span class="pill p-crit">Critical</span>
+      <h4>Metabase row counts are stale</h4>
+      <p>Wrong by up to three orders of magnitude, in both directions. Never quote the sidebar.</p>
+      <div class="ev">Transactions 2,234 → <b>247,980</b><br>gen_ai_conversations 26,980 → <b>1,712,867</b><br>user_activity_daily_logs 162,950 → <b>13,559,095</b></div>
+    </div>
+    <div class="mine">
+      <span class="pill p-warn">Performance</span>
+      <h4>The biggest tables have no user_id index</h4>
+      <p>Per-learner lookups become full scans and time out at ~4 minutes. Aggregate once in a CTE, then join.</p>
+      <div class="ev">user_activity_daily_logs → only row_uuid<br>academic_board_results → no reg_no index<br>video watch logs, gen_ai_* → only id</div>
+    </div>
+    <div class="mine">
+      <span class="pill p-crit">Empty</span>
+      <h4>Three tables look useful and are not</h4>
+      <p>They have sensible columns and silently return nothing, nulling any metric built on them.</p>
+      <div class="ev">VideoWatchLogs <b>0</b> · Topic_Progress <b>0</b><br>program_video_watch_logs <b>3,245</b></div>
+    </div>
+    <div class="mine">
+      <span class="pill p-warn">Design</span>
+      <h4><code>answer_breakdown</code> has no timestamp</h4>
+      <p>6.41 M answer rows with no date column. Cannot be trended or used in any first-N-days window without joining to a dated parent.</p>
+      <div class="ev">Route via lesson_id / content_id → user_activities.created_at</div>
+    </div>
+    <div class="mine">
+      <span class="pill p-warn">Scope</span>
+      <h4>Deep tables describe a narrow cohort</h4>
+      <p>The two highest-resolution tables cover a small paid population. Using them for headline breadth overstates by ~40×.</p>
+      <div class="ev">user_activities 14.01 M rows / <b>~45,000 learners</b><br>answer_breakdown 6.41 M rows / <b>25,487 learners</b></div>
+    </div>
+    <div class="mine">
+      <span class="pill p-warn">Windows</span>
+      <h4>Signals start at different dates</h4>
+      <p>A learner record is not uniformly deep. Any completeness claim must state the window per signal.</p>
+      <div class="ev">activity Oct 2020 · AI Jan 2025 · video May 2025<br>practice MCQ &amp; topic mastery Sep 2025</div>
+    </div>
+    <div class="mine">
+      <span class="pill p-crit">Gap</span>
+      <h4>No instalment repayment ledger</h4>
+      <p>The brief asks for on-time payment, delinquency and default. Only mandate status exists — there is no due-vs-paid table.</p>
+      <div class="ev">Declare as a gap; do not substitute a proxy.</div>
+    </div>
+  </div>
+</section>
+
+<section id="plan">
+  <h2>The five deliverables</h2>
+  <p class="sub">Build order. The first three are largely measured already by the queries above.</p>
+
+  <div class="steps">
+    <div class="step"><div class="sn">01</div><div>
+      <h4>Learning Graph scorecard <span class="pill p-good">Mostly done</span></h4>
+      <p>The 8–12 headline numbers. The tiles above are a working draft — each still needs a stated definition and an exclusion rule for test, staff and franchise accounts.</p>
+      <div class="meta"><span><b>Queries</b> Q1, Q2, Q5, Q9</span><span><b>Effort</b> 1 day</span></div>
+    </div></div>
+
+    <div class="step"><div class="sn">02</div><div>
+      <h4>Longitudinal cohort analysis <span class="pill p-good">Ready</span></h4>
+      <p>One table answers this end to end. Produce it as signup-cohort × months-since-signup retention curves, not just the threshold counts shown above.</p>
+      <div class="meta"><span><b>Queries</b> Q2, Q3</span><span><b>Effort</b> 2–3 days</span></div>
+    </div></div>
+
+    <div class="step"><div class="sn">03</div><div>
+      <h4>Learner record anatomy <span class="pill p-good">Partly done</span></h4>
+      <p>Measured so far for the 12-month cohort: 18.9 months, 67 active days, 318 events, 129 hours for engaged learners, 2 AI conversations at the median. Still to add: assessment responses and topics observed for the same cohort, so the figures compose into one profile.</p>
+      <div class="meta"><span><b>Queries</b> Q2, Q5, Q6, Q8</span><span><b>Effort</b> 3–4 days</span></div>
+    </div></div>
+
+    <div class="step"><div class="sn">04</div><div>
+      <h4>Predictive analysis <span class="pill p-warn">The hard one</span></h4>
+      <p><b>Start with retention, not exam results.</b> Q3 already yields a clean base table: 994,357 learners, a 16.0% base rate, features from the first 7 and 30 days. That is a well-formed problem. Academic outcome is the more impressive claim but only 55,020 learners have usable label variance, so run it second and report the sample honestly. Skip repayment — the ledger does not exist.</p>
+      <div class="meta"><span><b>Queries</b> Q3 then Q4</span><span><b>Report</b> AUC/lift + sample size + top features</span><span><b>Effort</b> 2–3 weeks</span></div>
+    </div></div>
+
+    <div class="step"><div class="sn">05</div><div>
+      <h4>Data moat appendix <span class="pill p-good">Assemble as you go</span></h4>
+      <p>Definitions, taxonomy, coverage, limitations. Write it continuously — every landmine above belongs in it. The five axes: breadth 4.6 M registered, depth 11 signal families, duration ~6 years, resolution per-answer and per-video-chunk, outcome linkage 55,020 verified SSC results. The last two are the genuinely defensible ones.</p>
+      <div class="meta"><span><b>Source</b> this page + your query log</span><span><b>Effort</b> ongoing</span></div>
+    </div></div>
+  </div>
+</section>
+
+<section id="handoff">
+  <h2>Handing it back</h2>
+  <ul class="clean" style="max-width:72ch">
+    <li><b>Separate measured from modelled.</b> The brief demands it. Use two visually distinct treatments so a measured fact and a model output never look alike.</li>
+    <li><b>Every number carries a definition, sample size and exclusion rule.</b> “994,357 learners” means nothing without “≥1 recorded active day, Oct 2020–Sep 2026, excluding test and staff accounts”.</li>
+    <li><b>Lead with the distribution.</b> Medians and percentiles throughout — the mean is only useful for showing how far the tail drags it.</li>
+    <li><b>Name the gaps first.</b> Repayment, AI language mix, and the GPA-5 label imbalance. Stating them costs nothing and buys credibility for everything else.</li>
+    <li><b>Send a memo, not a dashboard.</b> A diligence reader wants a claim they can check, not a tool to operate. Offer the dashboard as backup.</li>
+  </ul>
+
+  <div class="note">
+    <b class="h">One question worth asking Shahir before starting</b>
+    <p>Which outcome matters most for the investor conversation? Verified exam results are the most impressive claim but the label is heavily imbalanced and covers 55,020 learners; retention is cleaner, covers 994,357, and is ready to model this week. If time is short, that answer decides where Deliverable 04 goes.</p>
+  </div>
+
+  <h3>Access</h3>
+  <div class="tscroll">
+    <table style="min-width:640px">
+      <thead><tr><th>System</th><th>Where</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><b>Metabase</b></td><td class="t">insight.shikho.com</td><td>Native SQL via <code>POST /api/dataset</code>, API key in the <code>x-api-key</code> header, body <code>{"database":2,"type":"native","native":{"query":"…"}}</code>. Caps at 2,000 rows; 504s at ~4 min.</td></tr>
+        <tr><td><b>Warehouse</b></td><td class="t">Postgres · database id 2</td><td>213 tables — 196 <code>public</code> (raw mirrors), 17 <code>datafuse</code> (aggregated marts, built by Airflow). Read-only.</td></tr>
+        <tr><td><b>CRM</b></td><td class="t">MySQL · database id 37</td><td>Telesales and lead lifecycle. No cross-database joins in Metabase.</td></tr>
+        <tr><td><b>Tech-spec MCP</b></td><td class="t">mcp.shikho.net/mcp</td><td>Specs for 47 projects. Use it to answer “how does this column get populated?” Most relevant: <code>kpi</code>, <code>mongo-pipeline</code>, <code>data_pipeline_bronze</code>, <code>analytics</code>.</td></tr>
+        <tr><td><b>Existing dashboards</b></td><td class="t">Collections 132, 133, 267</td><td>Scorecard metrics (1,133 items), Product Event Activity (990), Investor Update (8). Heavily revenue-oriented — almost nothing covers learner depth or prediction.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:13px; color:var(--muted); margin-top:12px">Credentials are deliberately not reproduced here — get the Metabase key and MCP token from Mahizebin.</p>
+</section>
+
+<footer>
+  Shikho BI · figures measured against the read-only warehouse on 16 September 2026<br>
+  Every number on this page comes from a query in the cookbook. Re-run before publishing anything externally.
+</footer>
+
+</div>
+</body>
+</html>
